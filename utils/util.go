@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"time"
 	"math/rand"
+	"regexp"
 	"strings"
+	"time"
 )
 
 func RandStr(length int) string {
@@ -13,10 +14,15 @@ func RandStr(length int) string {
 
 	var temp_str strings.Builder
 
-	for a:=0; a < length; a++ {
+	for a := 0; a < length; a++ {
 		temp_str.WriteRune(chars[rand.Intn(len(chars))])
 	}
 	str := temp_str.String()
 	return str
 }
 
+func CheckStrUrl(str string) bool {
+	pattern := `(?m)^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$`
+	match, _ := regexp.MatchString(pattern, str)
+	return match
+}
