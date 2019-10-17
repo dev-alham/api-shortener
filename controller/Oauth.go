@@ -119,8 +119,6 @@ func getUserInfo(state string, code string) ([]byte, error) {
 }
 
 func getJwtToken(user User) (string, error) {
-	// Declare the expiration time of the token
-	// here, we have kept it as 5 minutes
 	expirationTime := time.Now().Add(ex_time_jwt * time.Hour)
 	claims := &Claims{
 		Id:          user.Id,
@@ -143,7 +141,7 @@ func getJwtToken(user User) (string, error) {
 	return tokenString, nil
 }
 
-func Auth(c *gin.Context) *Claims {
+func AuthMiddleware(c *gin.Context) *Claims {
 	tokenString := c.Request.Header.Get("Authorization")
 	claims := &Claims{}
 

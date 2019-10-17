@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"api-shortener/cache"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"math/rand"
@@ -61,6 +62,11 @@ func GetSession(token_string string) (*Claims, error) {
 		jwt_key := []byte(os.Getenv("JWT_KEY"))
 		return jwt_key, nil
 	})
+
+	sess_jwt, _ := cache.GetValue("AUTH", claims.Email)
+	if sess_jwt != token_string {
+		return nil, err
+	}
 
 	if token != nil && err == nil {
 		return claims, err

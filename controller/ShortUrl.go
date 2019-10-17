@@ -12,6 +12,7 @@ import (
 func CreateShortUrl(c *gin.Context) {
 	unix_url := utils.RandStr(8)
 	long_url := c.PostForm("long_url")
+	tokenString := c.Request.Header.Get("Authorization")
 	var email string
 
 	if long_url == "" || utils.CheckStrUrl(long_url) == false {
@@ -22,7 +23,7 @@ func CreateShortUrl(c *gin.Context) {
 		return
 	}
 
-	user := Auth(c)
+	user, _ := utils.GetSession(tokenString)
 	if user != nil {
 		email = user.Email
 	}
