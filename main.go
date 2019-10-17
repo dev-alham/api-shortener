@@ -70,10 +70,7 @@ func GetInfo(c *gin.Context) {
 
 	cache_jwt, _ := cache.GetValue("AUTH", user.Email)
 	if cache_jwt == nil || cache_jwt != token {
-		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
-			Status:  false,
-			Message: "Not authorization and access",
-		})
+		c.Redirect(http.StatusFound, "/")
 		return
 	}
 

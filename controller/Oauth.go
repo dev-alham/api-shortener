@@ -147,11 +147,6 @@ func Auth(c *gin.Context) *Claims {
 	tokenString := c.Request.Header.Get("Authorization")
 	claims := &Claims{}
 
-	sess_jwt, _ := cache.GetValue("AUTH", claims.Email)
-	if sess_jwt != tokenString {
-		return nil
-	}
-
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (i interface{}, e error) {
 		if jwt.SigningMethodHS256 != token.Method {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -159,6 +154,11 @@ func Auth(c *gin.Context) *Claims {
 		jwt_key := []byte(os.Getenv("JWT_KEY"))
 		return jwt_key, nil
 	})
+
+	sess_jwt, _ := cache.GetValue("AUTH", claims.Email)
+	if sess_jwt != tokenString {
+		return nil
+	}
 
 	// if token.Valid && err == nil {
 	if token != nil && err == nil {
@@ -176,7 +176,7 @@ func GoogleLogout(c *gin.Context) {
 			Status:  false,
 			Message: "Not authorization and access",
 		})
-		c.Abort()
+		return
 	}
 
 	user, err := utils.GetSession(tokenString)
@@ -185,7 +185,7 @@ func GoogleLogout(c *gin.Context) {
 			Status:  false,
 			Message: err.Error(),
 		})
-		c.Abort()
+		return
 	}
 
 	cache_jwt, _ := cache.GetValue("AUTH", user.Email)
@@ -194,7 +194,7 @@ func GoogleLogout(c *gin.Context) {
 			Status:  false,
 			Message: "Token not valid",
 		})
-		c.Abort()
+		return
 	}
 
 	cache.DelKey("AUTH", user.Email)
@@ -204,7 +204,7 @@ func GoogleLogout(c *gin.Context) {
 			Status:  false,
 			Message: err.Error(),
 		})
-		c.Abort()
+		return
 	}
 	defer response.Body.Close()
 	c.Redirect(http.StatusFound, "/")

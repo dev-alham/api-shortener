@@ -50,7 +50,7 @@ func CreateShortUrl(c *gin.Context) {
 
 	resp := utils.SuccessMsg{
 		true,
-		"Create short url success" + email,
+		"Create short url success " + email,
 		utils.Meta{
 			LongUrl:  long_url,
 			ShortUrl: unix_url,
