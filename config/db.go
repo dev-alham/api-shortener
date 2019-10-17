@@ -5,25 +5,23 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-)
-
-const (
-	DbHost = "localhost"
-	DbPort = "3307"
-	DbUser = "root"
-	DbPass = ""
-	DbName = "short_url"
+	"os"
 )
 
 var Db *gorm.DB
 var err error
 
-func InitConfig()  {
+func DbInit() {
 	dbCon := fmt.Sprintf("%s:%s@(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		DbUser, DbPass, DbHost, DbPort, DbName)
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASS"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"),
+	)
 
 	Db, err = gorm.Open("mysql", dbCon)
-	if err != nil{
+	if err != nil {
 		panic("Failed connection database")
 	}
 
@@ -33,7 +31,10 @@ func InitConfig()  {
 	//Auto create table based on Model
 	//Db.AutoMigrate(&models.ShortUrlModel{})
 
-	Db.AutoMigrate(&models.ShortUrlModel{})
+	Db.AutoMigrate(&models.ShortUrlModel{}).AddUniqueIndex(
+		"idx_create_at_email_user",
+		"created_at", "email_user",
+	)
 }
 
 func CloseConfig() error {
