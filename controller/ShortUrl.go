@@ -12,7 +12,7 @@ func CreateShortUrl(c *gin.Context) {
 	unix_url := utils.RandStr(8)
 	long_url := c.PostForm("long_url")
 	tokenString := c.Request.Header.Get("Authorization")
-	var email string
+	var email string = "null"
 
 	if long_url == "" || utils.CheckStrUrl(long_url) == false {
 		c.JSON(http.StatusNotAcceptable, utils.ErrMsg{
@@ -27,11 +27,10 @@ func CreateShortUrl(c *gin.Context) {
 		email = user.Email
 	}
 
-	multi_conditions := map[string]interface{}{
-		"long_url":   long_url,
-		"email_user": email,
-	}
-	shortUrl := models.MultipleCondition(multi_conditions)
+	shortUrl := models.GetOne(models.ShortUrlModel{
+		EmailUser: email,
+		LongUrl:   long_url,
+	})
 	if shortUrl.ID != 0 {
 		unix_url = shortUrl.ShortUrl
 	} else {
@@ -72,12 +71,29 @@ func GetOneShortUrl(c *gin.Context) {
 	}
 
 	param_short_url = strings.ToUpper(param_short_url)
-	shortUrl := models.GetOne("short_url", param_short_url)
+	shortUrl := models.GetOne(models.ShortUrlModel{
+		ShortUrl: param_short_url,
+	})
 
 	if shortUrl.ID == 0 {
 		c.JSON(http.StatusNotAcceptable, utils.ErrMsg{
 			Status:  false,
 			Message: "Data not found",
+		})
+		return
+	}
+
+	sts_update_count := models.UpdateShortUrl(models.ShortUrlModel{
+		ShortUrl: param_short_url,
+	}, models.ShortUrlModel{
+		UpdateAt: utils.GetCurrentTime(),
+		Count:    shortUrl.Count + 1,
+	})
+
+	if sts_update_count != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrMsg{
+			Status:  false,
+			Message: "Please try again",
 		})
 		return
 	}

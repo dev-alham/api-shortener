@@ -24,6 +24,9 @@ func DbInit() {
 		panic("Failed connection database")
 	}
 
+	// print query
+	Db.LogMode(true)
+
 	//Drops table if already exists
 	//Db.DropTableIfExists(&models.ShortUrlModel{})
 

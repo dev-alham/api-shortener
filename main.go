@@ -25,6 +25,8 @@ func init() {
 func main() {
 	router := gin.Default()
 	os.Setenv("TZ", "Asia/Jakarta")
+
+	//setup database
 	config.DbInit()
 	config.Db.AutoMigrate(&models.ShortUrlModel{}).AddUniqueIndex(
 		"idx_create_at_email_user",
@@ -35,6 +37,8 @@ func main() {
 		"idx_create_at_email_user",
 		"created_at", "email_user",
 	)
+
+	//setup redis
 	cache.RedisInit()
 
 	router.GET("/", GetInfo)
@@ -90,7 +94,7 @@ func GetInfo(c *gin.Context) {
 		"id_g":         user.Id,
 		"email":        user.Email,
 		"ex_sess":      user.ExpiresAt,
-		"current_time": utils.GetCurrentTime(),
+		"current_time": utils.GetCurrentTimeString(),
 	})
 }
 
