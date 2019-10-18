@@ -1,7 +1,6 @@
 package config
 
 import (
-	"api-shortener/models"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -31,10 +30,9 @@ func DbInit() {
 	//Auto create table based on Model
 	//Db.AutoMigrate(&models.ShortUrlModel{})
 
-	Db.AutoMigrate(&models.ShortUrlModel{}).AddUniqueIndex(
-		"idx_create_at_email_user",
-		"created_at", "email_user",
-	)
+	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
+		return "shortener_" + defaultTableName
+	}
 }
 
 func CloseConfig() error {
