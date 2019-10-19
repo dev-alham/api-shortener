@@ -11,7 +11,7 @@ type ShortUrlModel struct {
 	UpdateAt  time.Time `sql:"default:CURRENT_TIMESTAMP"`
 	EmailUser string    `sql:"size:200;default: null;index"`
 	LongUrl   string    `sql:"not null;size:200"`
-	ShortUrl  string    `sql:"not null;size:50;unique_index"`
+	ShortUrl  string    `sql:"not null;size:50;index"`
 	Count     int64     `sql:"not null; default: 0"`
 }
 

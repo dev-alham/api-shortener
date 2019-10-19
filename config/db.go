@@ -25,7 +25,7 @@ func DbInit() {
 	}
 
 	// print query
-	Db.LogMode(true)
+	Db.LogMode(false)
 
 	//Drops table if already exists
 	//Db.DropTableIfExists(&models.ShortUrlModel{})

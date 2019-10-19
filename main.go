@@ -31,6 +31,9 @@ func main() {
 	config.Db.AutoMigrate(&models.ShortUrlModel{}).AddUniqueIndex(
 		"idx_create_at_email_user",
 		"created_at", "email_user",
+	).AddUniqueIndex(
+		"idx_email_user_short_url",
+		"email_user", "short_url",
 	)
 
 	config.Db.AutoMigrate(&models.UserModel{}).AddUniqueIndex(
@@ -75,11 +78,16 @@ func GetInfo(c *gin.Context) {
 	}
 
 	user, err := utils.GetSession(q.Get("token"))
-	if user == nil {
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
 			Message: err.Error(),
 		})
+		return
+	}
+
+	if user == nil {
+		c.Redirect(http.StatusFound, "/")
 		return
 	}
 
@@ -88,6 +96,10 @@ func GetInfo(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/")
 		return
 	}
+
+	origin := c.ClientIP()
+	user_agent := c.Request.UserAgent()
+	fmt.Println(origin + "-" + user_agent)
 
 	c.JSON(http.StatusOK, gin.H{
 		"token":        q.Get("token"),

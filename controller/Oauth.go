@@ -2,6 +2,7 @@ package controller
 
 import (
 	"api-shortener/cache"
+	"api-shortener/models"
 	"api-shortener/utils"
 	"encoding/json"
 	"fmt"
@@ -64,6 +65,7 @@ func GoogleLogin(c *gin.Context) {
 }
 
 func GoogleCallback(c *gin.Context) {
+	var jwt_user string
 	q := c.Request.URL.Query()
 	content, err := getUserInfo(q.Get("state"), q.Get("code"))
 	if err != nil {
@@ -78,18 +80,39 @@ func GoogleCallback(c *gin.Context) {
 		log.Fatal(json_err)
 	}
 
-	jwt_token, err_jwt := getJwtToken(user)
-	if err_jwt != nil {
-		c.JSON(http.StatusInternalServerError, utils.ErrMsg{
-			Status:  false,
-			Message: err_jwt.Error(),
-		})
+	sts_cache, _ := cache.GetValue("AUTH", user.Email)
+	if sts_cache == nil {
+		jwt_token, err_jwt := getJwtToken(user)
+		if err_jwt != nil {
+			c.JSON(http.StatusInternalServerError, utils.ErrMsg{
+				Status:  false,
+				Message: err_jwt.Error(),
+			})
+		}
+
+		cache.SetValueWithTTL("AUTH", user.Email, jwt_token, ex_time_jwt*60)
+		jwt_user = jwt_token
+	} else {
+		jwt_user = fmt.Sprintf("%v", sts_cache)
 	}
 
-	cache.SetValueWithTTL("AUTH", user.Email, jwt_token, ex_time_jwt*60)
-	//models.InsertFirstOnCreate(user.Email, user.Id, user.Picture)
+	sts_in_up := models.InsertFirstOnCreate(models.UserModel{
+		EmailUser: user.Email,
+	}, models.UserModel{
+		UpdateAt: utils.GetCurrentTime(),
+		GoogleId: user.Id,
+		Picture:  user.Picture,
+	})
 
-	c.Redirect(http.StatusFound, "/?token="+jwt_token)
+	if sts_in_up != nil {
+		c.JSON(http.StatusInternalServerError, utils.ErrMsg{
+			Status:  false,
+			Message: "Please try again",
+		})
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/?token="+jwt_user)
 	c.Abort()
 }
 
@@ -154,10 +177,18 @@ func GoogleLogout(c *gin.Context) {
 	}
 
 	user, err := utils.GetSession(tokenString)
-	if user == nil {
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
 			Message: err.Error(),
+		})
+		return
+	}
+
+	if user == nil {
+		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
+			Status:  false,
+			Message: "Token not valid",
 		})
 		return
 	}

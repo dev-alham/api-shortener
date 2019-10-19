@@ -85,3 +85,11 @@ func GetCurrentTime() time.Time {
 	currentTime := time.Now()
 	return currentTime
 }
+
+func ValidateBetween(param int, smallest int, biggest int) bool {
+	if (param >= smallest) && (param <= biggest) {
+		return true
+	} else {
+		return false
+	}
+}
