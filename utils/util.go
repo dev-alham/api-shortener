@@ -93,3 +93,8 @@ func ValidateBetween(param int, smallest int, biggest int) bool {
 		return false
 	}
 }
+
+func DeletePrefixUrl(str string) string {
+	re := regexp.MustCompile(`(?m)(http|https)://|(www.)`)
+	return re.ReplaceAllString(str, "")
+}

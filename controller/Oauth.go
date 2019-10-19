@@ -27,6 +27,7 @@ var (
 const ex_time_jwt = 5
 
 var access_token string
+var DIR_CACHE_AUTH = "AUTH"
 
 type User struct {
 	Id      string `json:"id"`
@@ -80,7 +81,7 @@ func GoogleCallback(c *gin.Context) {
 		log.Fatal(json_err)
 	}
 
-	sts_cache, _ := cache.GetValue("AUTH", user.Email)
+	sts_cache, _ := cache.GetValue(DIR_CACHE_AUTH, user.Email)
 	if sts_cache == nil {
 		jwt_token, err_jwt := getJwtToken(user)
 		if err_jwt != nil {
@@ -90,7 +91,7 @@ func GoogleCallback(c *gin.Context) {
 			})
 		}
 
-		cache.SetValueWithTTL("AUTH", user.Email, jwt_token, ex_time_jwt*60)
+		cache.SetValueWithTTL(DIR_CACHE_AUTH, user.Email, jwt_token, ex_time_jwt*60)
 		jwt_user = jwt_token
 	} else {
 		jwt_user = fmt.Sprintf("%v", sts_cache)
@@ -193,7 +194,7 @@ func GoogleLogout(c *gin.Context) {
 		return
 	}
 
-	cache_jwt, _ := cache.GetValue("AUTH", user.Email)
+	cache_jwt, _ := cache.GetValue(DIR_CACHE_AUTH, user.Email)
 	if CheckLogin(fmt.Sprintf("%v", cache_jwt)) == false {
 		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
@@ -202,7 +203,7 @@ func GoogleLogout(c *gin.Context) {
 		return
 	}
 
-	cache.DelKey("AUTH", user.Email)
+	cache.DelKey(DIR_CACHE_AUTH, user.Email)
 	response, err := http.Get(os.Getenv("GOOGLE_LOGOUT") + user.AccessToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
@@ -226,7 +227,7 @@ func CheckLogin(token string) bool {
 		return false
 	}
 
-	sess_jwt, _ := cache.GetValue("AUTH", user.Email)
+	sess_jwt, _ := cache.GetValue(DIR_CACHE_AUTH, user.Email)
 	if sess_jwt != token {
 		return false
 	}
