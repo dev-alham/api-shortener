@@ -41,6 +41,11 @@ func main() {
 		"created_at", "email_user",
 	)
 
+	config.Db.AutoMigrate(&models.LogModel{}).AddUniqueIndex(
+		"idx_create_at_ip_addr",
+		"created_at", "ip_addr",
+	)
+
 	//setup redis
 	cache.RedisInit()
 

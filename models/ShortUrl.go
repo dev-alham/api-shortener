@@ -12,6 +12,7 @@ type ShortUrlModel struct {
 	EmailUser string    `sql:"size:200;default: null;index"`
 	LongUrl   string    `sql:"not null;size:200"`
 	ShortUrl  string    `sql:"not null;size:50;index"`
+	IpAddr    string    `sql:"not null; index; type:char(40)"`
 	Count     int64     `sql:"not null; default: 0"`
 }
 
@@ -82,4 +83,14 @@ func UpdateShortUrl(where_param ShortUrlModel, update_param ShortUrlModel) (err 
 	}
 
 	return tx.Commit().Error
+}
+
+func GetCountAnonymousRequest(ip_addr string, email string) int {
+	var result int
+	config.Db.Model(&ShortUrlModel{}).
+		Where("email_user = ?", email).
+		Where("DATE(created_at) = DATE(?)", time.Now()).
+		Where("ip_addr = ?", ip_addr).
+		Count(&result)
+	return result
 }
