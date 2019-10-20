@@ -1,0 +1,15 @@
+package config
+
+const (
+	PREFIX_DB_NAME = "shortener"
+
+	EX_TIME_JWT    = 5
+	DIR_CACHE_AUTH = "AUTH"
+	PRINT_QUERY    = true
+
+	CACHE_DIR_SHORT_URL    = "SHORT URL"
+	CACHE_DIR_LONG_URL     = "LONG URL"
+	CACHE_DIR_LIMIT        = "LIMIT"
+	LIMIT_REQUEST_GET_DAY  = 10
+	LIMIT_REQUEST_POST_DAY = 3
+)

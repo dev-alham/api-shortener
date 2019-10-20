@@ -25,7 +25,7 @@ func DbInit() {
 	}
 
 	// print query
-	Db.LogMode(true)
+	Db.LogMode(PRINT_QUERY)
 
 	//Drops table if already exists
 	//Db.DropTableIfExists(&models.ShortUrlModel{})
@@ -34,7 +34,7 @@ func DbInit() {
 	//Db.AutoMigrate(&models.ShortUrlModel{})
 
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
-		return "shortener_" + defaultTableName
+		return PREFIX_DB_NAME + "_" + defaultTableName
 	}
 }
 

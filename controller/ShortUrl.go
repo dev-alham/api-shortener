@@ -2,6 +2,7 @@ package controller
 
 import (
 	"api-shortener/cache"
+	"api-shortener/config"
 	"api-shortener/models"
 	"api-shortener/utils"
 	"fmt"
@@ -9,12 +10,6 @@ import (
 	"net/http"
 	"strings"
 )
-
-var CACHE_DIR_SHORT_URL = "SHORT URL"
-var CACHE_DIR_LONG_URL = "LONG URL"
-var CACHE_DIR_LIMIT = "LIMIT"
-var LIMIT_REQUEST_GET_DAY = 10
-var LIMIT_REQUEST_POST_DAY = 3
 
 func CreateShortUrl(c *gin.Context) {
 	unix_url := utils.RandStr(8)
@@ -68,11 +63,11 @@ func CreateShortUrl(c *gin.Context) {
 	}
 
 	if user == nil {
-		sts_limit, _ := cache.GetValue(CACHE_DIR_LIMIT+":"+CACHE_DIR_SHORT_URL, ip_addr)
+		sts_limit, _ := cache.GetValue(config.CACHE_DIR_LIMIT+":"+config.CACHE_DIR_SHORT_URL, ip_addr)
 		if sts_limit == nil {
 			count_req_anonym := models.GetCountAnonymousRequest(ip_addr, email)
-			if count_req_anonym >= LIMIT_REQUEST_POST_DAY {
-				cache.SetValueWithTTL(CACHE_DIR_LIMIT+":"+CACHE_DIR_SHORT_URL, ip_addr, true, 60)
+			if count_req_anonym >= config.LIMIT_REQUEST_POST_DAY {
+				cache.SetValueWithTTL(config.CACHE_DIR_LIMIT+":"+config.CACHE_DIR_SHORT_URL, ip_addr, true, 60)
 				sts_limit = true
 			}
 		}
@@ -87,17 +82,17 @@ func CreateShortUrl(c *gin.Context) {
 	}
 
 	// get short url in redis
-	cache_short_url, _ := cache.GetValue(CACHE_DIR_SHORT_URL+":"+email, long_url_req)
+	cache_short_url, _ := cache.GetValue(config.CACHE_DIR_SHORT_URL+":"+email, long_url_req)
 	if cache_short_url == nil {
 		shortUrl = models.GetOne(models.ShortUrlModel{
 			EmailUser: email,
 			LongUrl:   long_url_req,
 		})
 		if shortUrl.ID != 0 {
-			cache.SetValueWithTTL(CACHE_DIR_SHORT_URL+":"+email, long_url_req, shortUrl.ShortUrl, 60)
+			cache.SetValueWithTTL(config.CACHE_DIR_SHORT_URL+":"+email, long_url_req, shortUrl.ShortUrl, 60)
 			cache_short_url = shortUrl.ShortUrl
 		} else {
-			cache.SetValueWithTTL(CACHE_DIR_SHORT_URL+":"+email, long_url_req, unix_url, 5)
+			cache.SetValueWithTTL(config.CACHE_DIR_SHORT_URL+":"+email, long_url_req, unix_url, 5)
 		}
 	}
 
@@ -127,7 +122,7 @@ func CreateShortUrl(c *gin.Context) {
 				Status:  false,
 				Message: "Custom short url already used",
 			})
-			cache.DelKey(CACHE_DIR_SHORT_URL+":"+email, long_url_req)
+			cache.DelKey(config.CACHE_DIR_SHORT_URL+":"+email, long_url_req)
 			return
 		}
 	}
@@ -143,7 +138,7 @@ func CreateShortUrl(c *gin.Context) {
 			Status:  false,
 			Message: "Please try again",
 		})
-		cache.DelKey(CACHE_DIR_SHORT_URL+":"+email, long_url_req)
+		cache.DelKey(config.CACHE_DIR_SHORT_URL+":"+email, long_url_req)
 		return
 	}
 
@@ -172,11 +167,11 @@ func GetOneShortUrl(c *gin.Context) {
 		return
 	}
 
-	sts_limit, _ := cache.GetValue(CACHE_DIR_LIMIT+":"+CACHE_DIR_LONG_URL, ip_addr)
+	sts_limit, _ := cache.GetValue(config.CACHE_DIR_LIMIT+":"+config.CACHE_DIR_LONG_URL, ip_addr)
 	if sts_limit == nil {
 		cache_limit_req := models.GetCountRequestByDate(ip_addr)
-		if cache_limit_req >= LIMIT_REQUEST_GET_DAY {
-			cache.SetValueWithTTL(CACHE_DIR_LIMIT+":"+CACHE_DIR_LONG_URL, ip_addr, true, 60)
+		if cache_limit_req >= config.LIMIT_REQUEST_GET_DAY {
+			cache.SetValueWithTTL(config.CACHE_DIR_LIMIT+":"+config.CACHE_DIR_LONG_URL, ip_addr, true, 60)
 			sts_limit = true
 		}
 	}
@@ -201,7 +196,7 @@ func GetOneShortUrl(c *gin.Context) {
 		})
 	}
 
-	cache_long_url, _ := cache.GetValue(CACHE_DIR_LONG_URL, short_url_req)
+	cache_long_url, _ := cache.GetValue(config.CACHE_DIR_LONG_URL, short_url_req)
 	if cache_long_url == nil {
 		shortUrl = models.GetOne(models.ShortUrlModel{
 			ShortUrl: short_url_req,
@@ -212,7 +207,7 @@ func GetOneShortUrl(c *gin.Context) {
 		} else {
 			cache_long_url = "-"
 		}
-		cache.SetValueWithTTL(CACHE_DIR_LONG_URL, short_url_req, cache_long_url, 60)
+		cache.SetValueWithTTL(config.CACHE_DIR_LONG_URL, short_url_req, cache_long_url, 60)
 	}
 
 	if fmt.Sprintf("%v", cache_long_url) == "-" {
