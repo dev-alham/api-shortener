@@ -85,7 +85,7 @@ func GoogleCallback(c *gin.Context) {
 	if sts_cache == nil {
 		jwt_token, err_jwt := getJwtToken(user)
 		if err_jwt != nil {
-			c.JSON(http.StatusInternalServerError, utils.ErrMsg{
+			c.AbortWithStatusJSON(http.StatusInternalServerError, utils.ErrMsg{
 				Status:  false,
 				Message: err_jwt.Error(),
 			})
@@ -170,7 +170,7 @@ func GoogleLogout(c *gin.Context) {
 	tokenString := c.Request.Header.Get("Authorization")
 
 	if tokenString == "" {
-		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
 			Message: "Not authorization and access",
 		})
@@ -179,7 +179,7 @@ func GoogleLogout(c *gin.Context) {
 
 	user, err := utils.GetSession(tokenString)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
 			Message: err.Error(),
 		})
@@ -187,7 +187,7 @@ func GoogleLogout(c *gin.Context) {
 	}
 
 	if user == nil {
-		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
 			Message: "Token not valid",
 		})
@@ -196,7 +196,7 @@ func GoogleLogout(c *gin.Context) {
 
 	cache_jwt, _ := cache.GetValue(DIR_CACHE_AUTH, user.Email)
 	if CheckLogin(fmt.Sprintf("%v", cache_jwt)) == false {
-		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
 			Message: "Token not valid",
 		})
@@ -206,7 +206,7 @@ func GoogleLogout(c *gin.Context) {
 	cache.DelKey(DIR_CACHE_AUTH, user.Email)
 	response, err := http.Get(os.Getenv("GOOGLE_LOGOUT") + user.AccessToken)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
 			Message: err.Error(),
 		})

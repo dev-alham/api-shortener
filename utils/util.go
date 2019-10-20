@@ -4,7 +4,9 @@ import (
 	"api-shortener/cache"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
 	"math/rand"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -97,4 +99,13 @@ func ValidateBetween(param int, smallest int, biggest int) bool {
 func DeletePrefixUrl(str string) string {
 	re := regexp.MustCompile(`(?m)(http|https)://|(www.)`)
 	return re.ReplaceAllString(str, "")
+}
+
+func GoogleAccountLogout(c *gin.Context, access_token string) bool {
+	response, err := http.Get(os.Getenv("GOOGLE_LOGOUT") + access_token)
+	if err != nil {
+		return false
+	}
+	defer response.Body.Close()
+	return true
 }

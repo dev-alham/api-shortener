@@ -75,7 +75,7 @@ func GetInfo(c *gin.Context) {
 	token := q.Get("token")
 
 	if token == "" {
-		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
 			Message: "Not authorization and access",
 		})
@@ -84,14 +84,17 @@ func GetInfo(c *gin.Context) {
 
 	user, err := utils.GetSession(q.Get("token"))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, utils.ErrMsg{
+		utils.GoogleAccountLogout(c, user.AccessToken)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
 			Message: err.Error(),
 		})
 		return
+
 	}
 
 	if user == nil {
+		utils.GoogleAccountLogout(c, user.AccessToken)
 		c.Redirect(http.StatusFound, "/")
 		return
 	}
@@ -106,7 +109,7 @@ func GetInfo(c *gin.Context) {
 	user_agent := c.Request.UserAgent()
 	fmt.Println(origin + "-" + user_agent)
 
-	c.JSON(http.StatusOK, gin.H{
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{
 		"token":        q.Get("token"),
 		"id_g":         user.Id,
 		"email":        user.Email,
