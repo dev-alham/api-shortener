@@ -77,6 +77,28 @@ func GetSession(token_string string) (*Claims, error) {
 	}
 }
 
+func GetRevokeTokenGoogle(c *gin.Context, token_string string) bool {
+	claims := &Claims{}
+	token, _ := jwt.ParseWithClaims(token_string, claims, func(token *jwt.Token) (i interface{}, e error) {
+		if jwt.SigningMethodHS256 != token.Method {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		jwt_key := []byte(os.Getenv("JWT_KEY"))
+		return jwt_key, nil
+	})
+
+	if token != nil {
+		response, err := http.Get(os.Getenv("GOOGLE_LOGOUT") + claims.AccessToken)
+		if err != nil {
+			return false
+		}
+		defer response.Body.Close()
+		return true
+	} else {
+		return false
+	}
+}
+
 func GetCurrentTimeString() string {
 	currentTime := time.Now()
 	result := currentTime.Format("2006-01-02 15:04:05")
@@ -99,13 +121,4 @@ func ValidateBetween(param int, smallest int, biggest int) bool {
 func DeletePrefixUrl(str string) string {
 	re := regexp.MustCompile(`(?m)(http|https)://|(www.)`)
 	return re.ReplaceAllString(str, "")
-}
-
-func GoogleAccountLogout(c *gin.Context, access_token string) bool {
-	response, err := http.Get(os.Getenv("GOOGLE_LOGOUT") + access_token)
-	if err != nil {
-		return false
-	}
-	defer response.Body.Close()
-	return true
 }

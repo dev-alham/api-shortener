@@ -82,9 +82,9 @@ func GetInfo(c *gin.Context) {
 		return
 	}
 
-	user, err := utils.GetSession(q.Get("token"))
+	user, err := utils.GetSession(token)
 	if err != nil {
-		utils.GoogleAccountLogout(c, user.AccessToken)
+		utils.GetRevokeTokenGoogle(c, token)
 		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrMsg{
 			Status:  false,
 			Message: err.Error(),
@@ -94,7 +94,7 @@ func GetInfo(c *gin.Context) {
 	}
 
 	if user == nil {
-		utils.GoogleAccountLogout(c, user.AccessToken)
+		utils.GetRevokeTokenGoogle(c, token)
 		c.Redirect(http.StatusFound, "/")
 		return
 	}
@@ -104,10 +104,6 @@ func GetInfo(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/")
 		return
 	}
-
-	origin := c.ClientIP()
-	user_agent := c.Request.UserAgent()
-	fmt.Println(origin + "-" + user_agent)
 
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{
 		"token":        q.Get("token"),
