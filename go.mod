@@ -1,7 +1,6 @@
 module api-shortener
 
 require (
-	cloud.google.com/go v0.47.0 // indirect
 	cloud.google.com/go/bigquery v1.1.0 // indirect
 	cloud.google.com/go/storage v1.1.1 // indirect
 	github.com/Shopify/sarama v1.24.0 // indirect
@@ -62,4 +61,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/jcmturner/gokrb5.v7 v7.3.0 // indirect
 	gopkg.in/yaml.v2 v2.2.4 // indirect
+	cloud.google.com/go v0.47.0 // indirect
 )
