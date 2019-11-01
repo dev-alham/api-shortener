@@ -4,3 +4,7 @@
 ## GoLand##
 .idea/
 .idea/*
+
+## Vendor
+vendor/
+vendor/*
